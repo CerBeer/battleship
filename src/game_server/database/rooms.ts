@@ -1,6 +1,6 @@
 import { User } from './users';
 
-export type RoomUser = { name: string; index: number | string };
+export type RoomUser = { name: string; index: string };
 
 export const roomUser = (): RoomUser => {
   return {

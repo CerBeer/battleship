@@ -2,6 +2,7 @@ import { User } from 'game_server/database/users';
 import { Database } from '../database/db';
 import { Request, Answer, emptyAnswer } from './requests';
 import { reg as responseReg } from 'game_server/responses/reg';
+import { updateRoom } from 'game_server/responses/updateroom';
 
 const reg = (request: Request, db: Database): Answer => {
   const answer = emptyAnswer();
@@ -13,6 +14,7 @@ const reg = (request: Request, db: Database): Answer => {
 
   if (request.ws) {
     responseReg(result, request.ws);
+    updateRoom(db);
   }
 
   return answer;
