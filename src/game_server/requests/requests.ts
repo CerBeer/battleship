@@ -3,6 +3,7 @@ import { Database } from '../database/db';
 import reg from './reg';
 import regOut from './regout';
 import createRoom from './createroom';
+import addUserToRoom from './addusertoroom';
 
 export const requestTypes = {
   empty: 'empty',
@@ -95,8 +96,7 @@ export const processingRequest = (requestData: string, userWs: WebSocket, db: Da
       result = createRoom(message, db);
       break;
     case requestTypes.add_user_to_room:
-      {
-      }
+      result = addUserToRoom(message, db);
       break;
     case requestTypes.add_ships:
       {

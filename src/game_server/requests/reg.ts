@@ -1,7 +1,6 @@
 import { User } from 'game_server/database/users';
 import { Database } from '../database/db';
 import { Request, Answer, emptyAnswer } from './requests';
-import { ResponseTypes, responseTypes, sendMessage } from 'game_server/responses/responses';
 import { reg as responseReg } from 'game_server/responses/reg';
 
 const reg = (request: Request, db: Database): Answer => {
@@ -13,9 +12,7 @@ const reg = (request: Request, db: Database): Answer => {
   answer.message = result.message;
 
   if (request.ws) {
-    const responseType = responseTypes.reg as ResponseTypes;
-    const responseData = responseReg(result);
-    sendMessage(responseType, responseData, request.ws);
+    responseReg(result, request.ws);
   }
 
   return answer;
