@@ -37,17 +37,19 @@ export const emptyAnswer = (): Answer => {
   };
 };
 
-export const emptyRequest: Request = {
-  isCorrect: false,
-  type: requestTypes.empty as Request['type'],
-  data: {},
-  id: 0,
-  ws: null,
-  answer: 'Not allowed',
+export const emptyRequest = (): Request => {
+  return {
+    isCorrect: false,
+    type: requestTypes.empty as Request['type'],
+    data: {},
+    id: 0,
+    ws: null,
+    answer: 'Not allowed',
+  };
 };
 
 const parseRequest = (requestData: string, userWs: WebSocket) => {
-  const result = emptyRequest;
+  const result = emptyRequest();
   result.ws = userWs;
   let message = {};
   try {
