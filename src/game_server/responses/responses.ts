@@ -31,5 +31,5 @@ export const newResponse = (type: string, data: string) => {
 export const sendMessage = (type: ResponseTypes, data: string, cws: WebSocket) => {
   const message = newResponse(type, data);
   cws.send(message);
-  console.log(`Sent message: ${message}`);
+  // console.log(`Sent message: ${message}`);
 };
