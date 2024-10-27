@@ -1,6 +1,7 @@
 import { updateRoom } from 'game_server/responses/updateroom';
 import { Database } from '../database/db';
 import { Request, Answer, emptyAnswer } from './requests';
+import { createGame } from 'game_server/responses/creategame';
 
 type MessageData = {
   indexRoom: number;
@@ -25,13 +26,22 @@ const addUserToRoom = (request: Request, db: Database): Answer => {
 
   if (result.isCorrect) {
     answer.message = `User ${userMessage.user.name} added to room`;
-    const roomMessage = db.rooms.closeRoom(roomData.indexRoom);
-    if (!roomMessage.isCorrect) {
-      answer.isCorrect = result.isCorrect;
-      answer.message = result.message;
+    const gameMessage = db.games.createGame(result.room);
+    if (!gameMessage.isCorrect) {
+      answer.isCorrect = gameMessage.isCorrect;
+      answer.message = gameMessage.message;
       return answer;
     }
+    const roomMessage = db.rooms.closeRoom(result.room.roomId);
+    if (!roomMessage.isCorrect) {
+      answer.isCorrect = roomMessage.isCorrect;
+      answer.message = roomMessage.message;
+      return answer;
+    }
+    createGame(gameMessage, db);
     updateRoom(db);
+    answer.isCorrect = true;
+    answer.message = 'Game created';
   }
 
   return answer;
