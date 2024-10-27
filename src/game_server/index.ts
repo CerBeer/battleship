@@ -1,7 +1,10 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { parseRequest } from './requests/requests';
+import { processingRequest } from './requests/requests';
+import { database } from './database/db';
 
 export function gameServer(gameServerPort: number) {
+  const db = database;
+
   const gameServer = new WebSocketServer({
     port: gameServerPort,
     clientTracking: true,
@@ -12,11 +15,14 @@ export function gameServer(gameServerPort: number) {
 
     playerSocket.on('message', (data) => {
       const requestData = data.toString();
-      const message = parseRequest(requestData);
-      console.log(`Request data: ${message}`);
+      // console.log(`Request data: ${requestData}`);
+      processingRequest(requestData, playerSocket, db);
     });
 
     playerSocket.on('close', () => {
+      const requestData = JSON.stringify({ type: 'regOut', data: '{}' });
+      // console.log({ requestData });
+      processingRequest(requestData, playerSocket, db);
       console.log(`Disconnected player. Active connections ${gameServer.clients.size}`);
     });
   });
