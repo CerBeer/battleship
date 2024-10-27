@@ -45,7 +45,7 @@ export class Rooms {
     return this._instance;
   }
 
-  public roomUserFormUser = (user: User): RoomUser => {
+  public roomUserFromUser = (user: User): RoomUser => {
     const result = roomUser();
     result.index = user.index;
     result.name = user.name;
@@ -79,14 +79,30 @@ export class Rooms {
     return result;
   };
 
-  public addUser = (roomIndex: number, roomUser: RoomUser): RoomMessage => {
+  closeUserRoom = (indexUser: string): boolean => {
+    if (!indexUser) return false;
+    let result = false;
+    let indexRoom = 0;
+    this._records.forEach((record: Room) => {
+      if (record.roomUsers.filter((user) => user.index === indexUser).length) indexRoom = record.roomId;
+    });
+    if (indexRoom > 0) {
+      result = this.closeRoom(indexRoom).isCorrect;
+    }
+    return result;
+  };
+
+  public addUserToRoom = (roomIndex: number, roomUser: RoomUser): RoomMessage => {
     const result = this.getRoomByIndex(roomIndex);
     if (!result.isCorrect) return result;
 
     if (result.room.roomUsers.filter((user) => user.index === roomUser.index).length) {
       result.isCorrect = false;
       result.message = 'User already in this room';
+      return result;
     }
+
+    this.closeUserRoom(roomUser.index as string);
 
     result.room.roomUsers.push(roomUser);
     return result;
@@ -111,8 +127,17 @@ export class Rooms {
     return result;
   };
 
+  public closeRoom = (index: number): RoomMessage => {
+    const roomMessage = this.getRoomByIndex(index);
+    if (!roomMessage.isCorrect) return roomMessage;
+    this._records.delete(index);
+    roomMessage.isCorrect = true;
+    roomMessage.message = '';
+    return roomMessage;
+  };
+
   public getAvailableRooms = (): Room[] => {
-    console.log(this._records);
+    // console.log(this._records);
     const result: Room[] = [];
     this._records.forEach((record: Room) => {
       if (record.roomUsers.length === 1) result.push(record);
