@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { Database } from '../database/db';
 import reg from './reg';
 import regOut from './regout';
+import createRoom from './createroom';
 
 export const requestTypes = {
   empty: 'empty',
@@ -57,11 +58,13 @@ const parseRequest = (requestData: string, userWs: WebSocket) => {
   } catch {
     return result;
   }
+
   const { type, data, id } = message as Request;
-  if (!requestTypes.hasOwnProperty(type) || !data) {
+  // console.log({ type, data, id });
+  if (!requestTypes.hasOwnProperty(type) || data === undefined) {
     return result;
   }
-  // console.log({ type, data, id });
+
   try {
     if (data) result.data = JSON.parse(data as unknown as string);
   } catch {
@@ -89,8 +92,7 @@ export const processingRequest = (requestData: string, userWs: WebSocket, db: Da
       result = regOut(message, db);
       break;
     case requestTypes.create_room:
-      {
-      }
+      result = createRoom(message, db);
       break;
     case requestTypes.add_user_to_room:
       {

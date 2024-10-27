@@ -1,14 +1,12 @@
+import { Rooms } from './rooms';
 import { Users } from './users';
 
 export type Database = {
   users: Users;
+  rooms: Rooms;
 };
 
 export const database: Database = {
   users: new Users(),
-};
-
-export type DbMessage = {
-  object: Users;
-  message: string;
+  rooms: new Rooms(),
 };
