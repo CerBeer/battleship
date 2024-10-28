@@ -16,13 +16,35 @@ export type MessageDataShips = {
   indexPlayer: string;
 };
 
-export type GameUser = { name: string; index: string; ships: Ship[] };
+export type SquareLine = number[];
+export type Square = SquareLine[];
+const squareEmpty = (): Square => {
+  const square: Square = [];
+  for (let i = 0; i < 10; i += 1) {
+    const squareLine: SquareLine = [];
+    for (let l = 0; l < 10; l += 1) {
+      squareLine.push(0);
+    }
+    square.push(squareLine);
+  }
+  return square;
+};
+
+export type GameUser = {
+  name: string;
+  index: string;
+  ships: Ship[];
+  square: Square;
+  squareEnemy: Square;
+};
 
 export const gameUser = (): GameUser => {
   return {
     name: '',
     index: '',
     ships: [],
+    square: squareEmpty(),
+    squareEnemy: squareEmpty(),
   };
 };
 
@@ -103,6 +125,26 @@ export class Games {
     return result;
   };
 
+  public checkTurn = (game: Game, index: string): GameMessage => {
+    const result = this.getGameByIndex(game.idGame);
+    if (!result.isCorrect) return result;
+    const player = result.game.gameUsers[result.game.attacking];
+    result.isCorrect = player.index === index;
+    if (!result.isCorrect) {
+      const attacking = result.game.attacking === 0 ? 1 : 0;
+      const missing = result.game.gameUsers[attacking];
+      result.message = `The player ${missing.name} moves out of turn`;
+    }
+    return result;
+  };
+
+  public nextTurn = (game: Game): GameMessage => {
+    const result = this.getGameByIndex(game.idGame);
+    if (!result.isCorrect) return result;
+    result.game.attacking = result.game.attacking === 0 ? 1 : 0;
+    return result;
+  };
+
   public getGameByIndex = (index: number): GameMessage => {
     const result = gameMessage();
     if (!index) {
@@ -142,10 +184,31 @@ export class Games {
       return result;
     }
     player.ships = messageData.ships;
+    player.square = this.setShipsToSquare(messageData.ships);
     result.isCorrect = true;
     result.message = `Player ${player.name} added ships`;
     result.game = game;
 
+    // console.log(messageData.ships);
+
+    return result;
+  };
+
+  setShipsToSquare = (ships: Ship[]): Square => {
+    const result = squareEmpty();
+    ships.forEach((ship) => {
+      let dx = 0;
+      let dy = 0;
+      if (ship.direction) dy = 1;
+      else dx = 1;
+      let x = ship.position.x;
+      let y = ship.position.y;
+      for (let i = 0; i < ship.length; i += 1) {
+        result[y][x] = 2;
+        x += dx;
+        y += dy;
+      }
+    });
     return result;
   };
 }

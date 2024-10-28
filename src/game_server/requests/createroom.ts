@@ -15,10 +15,14 @@ const createRoom = (request: Request, db: Database): Answer => {
   }
   const roomUser = db.rooms.roomUserFromUser(userMessage.user);
   const result = db.rooms.createRoom(roomUser);
+  if (!result.isCorrect) {
+    answer.isCorrect = result.isCorrect;
+    answer.message = result.message;
+    return answer;
+  }
   answer.isCorrect = result.isCorrect;
   answer.message = `User ${userMessage.user.name} create room`;
-
-  if (result.isCorrect) updateRoom(db);
+  updateRoom(db);
 
   return answer;
 };
