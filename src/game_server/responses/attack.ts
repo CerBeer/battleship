@@ -9,12 +9,12 @@ export const responseTemplate = (): ResponseTemplate => {
       y: 0,
     },
     currentPlayer: '',
-    status: 'miss' as shotStatus,
+    status: 'miss' as ShotStatus,
   };
   return result;
 };
 
-export type shotStatus = 'miss' | 'killed' | 'shot';
+export type ShotStatus = 'miss' | 'killed' | 'shot';
 
 export type ResponseTemplate = {
   position: {
@@ -22,7 +22,7 @@ export type ResponseTemplate = {
     y: number;
   };
   currentPlayer: string;
-  status: shotStatus;
+  status: ShotStatus;
 };
 
 export const attack = (game: Game, template: ResponseTemplate, db: Database) => {
