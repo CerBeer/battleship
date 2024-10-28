@@ -76,6 +76,17 @@ export const gameMessage = (): GameMessage => {
   };
 };
 
+export type ShotStatus = 'miss' | 'killed' | 'shot';
+
+export type ShotResult = {
+  position: {
+    x: number;
+    y: number;
+  };
+  currentPlayer: string;
+  status: ShotStatus;
+};
+
 export class Games {
   private _nextIndex = 1;
   private _records: Map<number, Game> = new Map();
@@ -133,7 +144,7 @@ export class Games {
     if (!result.isCorrect) {
       const attacking = result.game.attacking === 0 ? 1 : 0;
       const missing = result.game.gameUsers[attacking];
-      result.message = `The player ${missing.name} moves out of turn`;
+      result.message = `The player ${missing.name} shot out of turn`;
     }
     return result;
   };
@@ -192,6 +203,44 @@ export class Games {
     // console.log(messageData.ships);
 
     return result;
+  };
+
+  public setAttackResult = (gameResult: Game, shotResult: ShotResult): GameMessage => {
+    const gameMessage = this.getGameByIndex(gameResult.idGame);
+    if (!gameMessage.isCorrect) {
+      return gameMessage;
+    }
+
+    const game = gameMessage.game;
+    const player = game.gameUsers.find((user) => user.index === shotResult.currentPlayer);
+    if (!player) {
+      gameMessage.isCorrect = false;
+      gameMessage.message = 'Player not found in game';
+      return gameMessage;
+    }
+    const enemy = game.gameUsers.find((user) => user.index !== shotResult.currentPlayer);
+    if (!enemy) {
+      gameMessage.isCorrect = false;
+      gameMessage.message = 'Player not found in game';
+      return gameMessage;
+    }
+
+    const y = shotResult.position.y;
+    const x = shotResult.position.x;
+    enemy.square[y][x] = shotResult.status === 'miss' ? 1 : 3;
+    player.squareEnemy[y][x] = shotResult.status === 'miss' ? 1 : 3;
+    gameMessage.isCorrect = true;
+    gameMessage.message = ``;
+    gameMessage.game = game;
+
+    return gameMessage;
+  };
+
+  public deleteGame = (gameResult: Game): boolean => {
+    const game = this._records.get(gameResult.idGame);
+    if (!game) return false;
+    this._records.delete(gameResult.idGame);
+    return true;
   };
 
   setShipsToSquare = (ships: Ship[]): Square => {

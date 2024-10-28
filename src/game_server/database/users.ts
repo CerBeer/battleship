@@ -13,6 +13,11 @@ export type User = {
   ws: WebSocket | null;
 };
 
+export type Winner = {
+  name: string;
+  wins: number;
+};
+
 export const emptyUser = (): User => {
   return {
     index: '',
@@ -136,10 +141,35 @@ export class Users {
     return result;
   };
 
+  public addScore = (index: string): PlayerMessage => {
+    const result = this.getUserByIndex(index);
+    if (!result.isCorrect) {
+      return result;
+    }
+    const user = result.user;
+    user.score += 1;
+
+    result.isCorrect = true;
+    result.user = user;
+
+    return result;
+  };
+
   public getAllOnlineUsers = (): User[] => {
     const models: User[] = [];
     this._records.forEach((record: User) => {
       if (record.ws) models.push(record);
+    });
+    return models;
+  };
+
+  public getAllWinners = (): Winner[] => {
+    const models: Winner[] = [];
+    this._records.forEach((record: User) => {
+      if (record.score > 0) models.push({ name: record.name, wins: record.score });
+    });
+    models.sort((a, b) => {
+      return b.wins - a.wins;
     });
     return models;
   };

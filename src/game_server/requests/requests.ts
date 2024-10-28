@@ -6,6 +6,7 @@ import createRoom from './createroom';
 import addUserToRoom from './addusertoroom';
 import addShips from './addships';
 import attack from './attack';
+import randomAttack from './randomattack';
 
 export const requestTypes = {
   empty: 'empty',
@@ -107,8 +108,7 @@ export const processingRequest = (requestData: string, userWs: WebSocket, db: Da
       result = attack(message, db);
       break;
     case requestTypes.randomAttack:
-      {
-      }
+      result = randomAttack(message, db);
       break;
     default:
       result = emptyAnswer();
