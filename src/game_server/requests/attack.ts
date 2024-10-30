@@ -64,6 +64,17 @@ const attack = (request: Request, db: Database): Answer => {
   db.games.setAttackResult(game, template);
   attackResponse(game, template, db);
 
+  if (shootResult === 'killed') {
+    const cells = cellsForClose(enemySquare, y, x);
+    template.status = 'miss';
+    cells.forEach((cell) => {
+      template.position.x = cell.x;
+      template.position.y = cell.y;
+      attackResponse(game, template, db);
+      db.games.setAttackResult(game, template);
+    });
+  }
+
   const isWin = checkWin(enemySquare);
   if (isWin) {
     finish(game, messageData.indexPlayer, db);
@@ -119,6 +130,64 @@ const checkWin = (square: Square) => {
       if (CellStatus[square[i][l]] === 'full') result = false;
     }
   }
+  return result;
+};
+
+const cellsForClose = (enemySquare: Square, y: number, x: number) => {
+  const ship = [{ y, x }];
+  let xl = 1;
+  let xr = 1;
+  let yu = 1;
+  let yd = 1;
+  while (xl + xr + yu + yd > 0) {
+    if (y - yu < 0) yu = 0;
+    if (y + yd > 9) yd = 0;
+    if (x - xl < 0) xl = 0;
+    if (x + xr > 9) xr = 0;
+
+    if (yu > 0 && enemySquare[y - yu][x] > 1) ship.push({ y: y - yu, x });
+    if (yd > 0 && enemySquare[y + yd][x] > 1) ship.push({ y: y + yd, x });
+    if (xl > 0 && enemySquare[y][x - xl] > 1) ship.push({ y, x: x - xl });
+    if (xr > 0 && enemySquare[y][x + xr] > 1) ship.push({ y, x: x + xr });
+
+    if (enemySquare[y - yu][x] < 2) yu = 0;
+    if (enemySquare[y + yd][x] < 2) yd = 0;
+    if (enemySquare[y][x - xl] < 2) xl = 0;
+    if (enemySquare[y][x + xr] < 2) xr = 0;
+
+    xl = xl + (xl > 0 ? 1 : 0);
+    xr = xr + (xr > 0 ? 1 : 0);
+    yu = yu + (yu > 0 ? 1 : 0);
+    yd = yd + (yd > 0 ? 1 : 0);
+  }
+  const cells: { y: number; x: number }[] = [];
+  ship.forEach((cell) => {
+    if (cell.y - 1 >= 0 && cell.x - 1 >= 0 && enemySquare[cell.y - 1][cell.x - 1] === 0)
+      cells.push({ y: cell.y - 1, x: cell.x - 1 });
+    if (cell.y - 1 >= 0 && cell.x >= 0 && enemySquare[cell.y - 1][cell.x] === 0)
+      cells.push({ y: cell.y - 1, x: cell.x });
+    if (cell.y - 1 >= 0 && cell.x + 1 < 10 && enemySquare[cell.y - 1][cell.x + 1] === 0)
+      cells.push({ y: cell.y - 1, x: cell.x + 1 });
+    if (cell.x - 1 >= 0 && enemySquare[cell.y][cell.x - 1] === 0) cells.push({ y: cell.y, x: cell.x - 1 });
+    if (cell.x + 1 >= 0 && enemySquare[cell.y][cell.x + 1] === 0) cells.push({ y: cell.y, x: cell.x + 1 });
+    if (cell.y + 1 < 10 && cell.x - 1 >= 0 && enemySquare[cell.y + 1][cell.x - 1] === 0)
+      cells.push({ y: cell.y + 1, x: cell.x - 1 });
+    if (cell.y + 1 < 10 && cell.x >= 0 && enemySquare[cell.y + 1][cell.x] === 0)
+      cells.push({ y: cell.y + 1, x: cell.x });
+    if (cell.y + 1 < 10 && cell.x + 1 < 10 && enemySquare[cell.y + 1][cell.x + 1] === 0)
+      cells.push({ y: cell.y + 1, x: cell.x + 1 });
+  });
+
+  const result: { y: number; x: number }[] = [];
+  cells.forEach((cell) => {
+    if (
+      !result.find((fcell) => {
+        return fcell.y === cell.y && fcell.x === cell.x;
+      })
+    )
+      result.push(cell);
+  });
+
   return result;
 };
 
