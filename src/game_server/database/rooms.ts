@@ -70,6 +70,16 @@ export class Rooms {
     return result;
   };
 
+  kickUserFrommAllRooms = (indexUser: string): boolean => {
+    if (!indexUser) return false;
+    if (!this.checkUserAlreadyInRoom(indexUser)) return false;
+    const result = true;
+    this._records.forEach((record: Room) => {
+      record.roomUsers = record.roomUsers.filter((user) => user.index !== indexUser);
+    });
+    return result;
+  };
+
   checkUserAlreadyInRoom = (indexUser: string): boolean => {
     if (!indexUser) return false;
     let result = false;
