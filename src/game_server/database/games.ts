@@ -243,6 +243,24 @@ export class Games {
     return true;
   };
 
+  getGameByUserIndex = (index: string): GameMessage => {
+    const result = gameMessage();
+    result.isCorrect = false;
+    result.message = 'Game not found';
+    if (!index) {
+      result.message = 'Incorrect User index received';
+      return result;
+    }
+    this._records.forEach((record: Game) => {
+      if (record.gameUsers.filter((user) => user.index === index).length) {
+        result.isCorrect = true;
+        result.message = '';
+        result.game = record;
+      }
+    });
+    return result;
+  };
+
   setShipsToSquare = (ships: Ship[]): Square => {
     const result = squareEmpty();
     ships.forEach((ship) => {
