@@ -7,14 +7,14 @@ import { Square } from 'game_server/database/games';
 import { finish } from 'game_server/responses/finish';
 import { updateWinners } from 'game_server/responses/updatewinners';
 
-type MessageData = {
+export type MessageData = {
   gameId: number;
   x: number;
   y: number;
   indexPlayer: string;
 };
 
-const CellStatus = ['empty', 'empty attacked', 'full', 'full destroyed'];
+export const CellStatus = ['empty', 'miss', 'full', 'shot', 'killed'];
 
 const attack = (request: Request, db: Database): Answer => {
   const answer = emptyAnswer();
@@ -43,7 +43,7 @@ const attack = (request: Request, db: Database): Answer => {
   const y = messageData.y;
   const x = messageData.x;
 
-  if (CellStatus[enemySquare[y][x]] === 'full destroyed') {
+  if (CellStatus[enemySquare[y][x]] === 'shot') {
     answer.isCorrect = false;
     answer.message = 'Skip shot on destroyed cell';
     return answer;
@@ -54,14 +54,15 @@ const attack = (request: Request, db: Database): Answer => {
     db.games.nextTurn(game);
   }
   answer.isCorrect = true;
-  answer.message = `Player ${player?.name} shot with result ${shootResult}`;
+  if (player!.bot) answer.message = `shot with result ${shootResult}`;
+  else answer.message = `Player ${player?.name} shot with result ${shootResult}`;
 
   const template = responseTemplate();
   template.position.x = x;
   template.position.y = y;
   template.status = shootResult;
   template.currentPlayer = messageData.indexPlayer;
-  db.games.setAttackResult(game, template);
+  db.games.setAttackResult(game, template, CellStatus.indexOf(shootResult));
   attackResponse(game, template, db);
 
   if (shootResult === 'killed') {
@@ -71,7 +72,14 @@ const attack = (request: Request, db: Database): Answer => {
       template.position.x = cell.x;
       template.position.y = cell.y;
       attackResponse(game, template, db);
-      db.games.setAttackResult(game, template);
+      db.games.setAttackResult(game, template, CellStatus.indexOf('miss'));
+    });
+    const killedCells = markKilledShip(enemySquare, y, x);
+    template.status = 'killed';
+    killedCells.forEach((cell) => {
+      template.position.x = cell.x;
+      template.position.y = cell.y;
+      db.games.setAttackResult(game, template, CellStatus.indexOf('killed'));
     });
   }
 
@@ -79,8 +87,12 @@ const attack = (request: Request, db: Database): Answer => {
   if (isWin) {
     finish(game, messageData.indexPlayer, db);
     answer.message = answer.message + `\nPlayer ${player?.name} win!`;
-    db.users.addScore(messageData.indexPlayer);
+    if (!enemy!.bot) {
+      db.users.addScore(messageData.indexPlayer);
+    }
     db.games.deleteGame(game);
+    if (player!.bot) db.users.deleteUser(player!.index);
+    if (enemy!.bot) db.users.deleteUser(enemy!.index);
     updateWinners(db);
   } else {
     turn(game, db);
@@ -188,6 +200,39 @@ const cellsForClose = (enemySquare: Square, y: number, x: number) => {
       result.push(cell);
   });
 
+  return result;
+};
+
+const markKilledShip = (enemySquare: Square, y: number, x: number): { x: number; y: number }[] => {
+  const killed = CellStatus.indexOf('killed');
+  const shot = CellStatus.indexOf('shot');
+  enemySquare[y][x] = killed;
+
+  const result: { x: number; y: number }[] = [{ x, y }];
+
+  let xl = 1;
+  let xr = 1;
+  let yu = 1;
+  let yd = 1;
+  while (xl + xr + yu + yd > 0) {
+    if (y - yu < 0) yu = 0;
+    if (y + yd > 9) yd = 0;
+    if (x - xl < 0) xl = 0;
+    if (x + xr > 9) xr = 0;
+    if (yu > 0 && enemySquare[y - yu][x] >= shot) result.push({ y: y - yu, x });
+    if (yd > 0 && enemySquare[y + yd][x] >= shot) result.push({ y: y + yd, x });
+    if (xl > 0 && enemySquare[y][x - xl] >= shot) result.push({ y, x: x - xl });
+    if (xr > 0 && enemySquare[y][x + xr] >= shot) result.push({ y, x: x + xr });
+    if (enemySquare[y - yu][x] < shot) yu = 0;
+    if (enemySquare[y + yd][x] < shot) yd = 0;
+    if (enemySquare[y][x - xl] < shot) xl = 0;
+    if (enemySquare[y][x + xr] < shot) xr = 0;
+
+    xl = xl + (xl > 0 ? 1 : 0);
+    xr = xr + (xr > 0 ? 1 : 0);
+    yu = yu + (yu > 0 ? 1 : 0);
+    yd = yd + (yd > 0 ? 1 : 0);
+  }
   return result;
 };
 

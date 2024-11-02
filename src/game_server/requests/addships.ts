@@ -17,6 +17,14 @@ const addShips = (request: Request, db: Database): Answer => {
   }
 
   const game = gameMessage.game;
+  const enemy = game.gameUsers.find((user) => user.index !== messageData.indexPlayer);
+
+  if (enemy!.bot && enemy!.ships.length < 10) {
+    console.log('Set ships to bot');
+    messageData.indexPlayer = enemy!.index;
+    db.games.setUserShips(messageData);
+  }
+
   const allPlayersShips = game.gameUsers.reduce((result, user) => {
     result = result && user.ships.length === 10;
     return result;

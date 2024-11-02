@@ -1,13 +1,6 @@
 import { Database } from '../database/db';
 import { Request, Answer, emptyAnswer } from './requests';
-import attack from './attack';
-
-type MessageData = {
-  gameId: number;
-  x: number;
-  y: number;
-  indexPlayer: string;
-};
+import attack, { MessageData } from './attack';
 
 const randomAttack = (request: Request, db: Database): Answer => {
   const answer = emptyAnswer();
@@ -57,7 +50,7 @@ const randomAttack = (request: Request, db: Database): Answer => {
   return result;
 };
 
-function getRandomNumber(min: number, max: number): number {
+export function getRandomNumber(min: number, max: number): number {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min);

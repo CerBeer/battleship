@@ -1,11 +1,12 @@
 import { User } from './users';
 
-export type RoomUser = { name: string; index: string };
+export type RoomUser = { name: string; index: string; bot: boolean };
 
 export const roomUser = (): RoomUser => {
   return {
     name: '',
     index: '',
+    bot: false,
   };
 };
 
@@ -49,6 +50,7 @@ export class Rooms {
     const result = roomUser();
     result.index = user.index;
     result.name = user.name;
+    result.bot = user.bot;
     return result;
   };
 
@@ -147,7 +149,6 @@ export class Rooms {
   };
 
   public getAvailableRooms = (): Room[] => {
-    // console.log(this._records);
     const result: Room[] = [];
     this._records.forEach((record: Room) => {
       if (record.roomUsers.length === 1) result.push(record);

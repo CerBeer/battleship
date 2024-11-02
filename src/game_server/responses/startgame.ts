@@ -1,6 +1,6 @@
 import { Game } from 'game_server/database/games';
 import { Database } from '../database/db';
-import { responseTypes, ResponseTypes, sendMessage } from './responses';
+import { responseTypes, ResponseTypes, sendMessageToUser } from './responses';
 
 export const startGame = (game: Game, db: Database) => {
   const responseType = responseTypes.start_game as ResponseTypes;
@@ -12,6 +12,6 @@ export const startGame = (game: Game, db: Database) => {
     };
     const responseData = JSON.stringify(data);
 
-    sendMessage(responseType, responseData, user.ws!);
+    sendMessageToUser(responseType, responseData, user);
   });
 };

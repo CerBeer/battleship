@@ -1,6 +1,12 @@
 import { GameMessage } from 'game_server/database/games';
-import { Database } from '../database/db';
-import { responseTypes, ResponseTypes, sendMessage } from './responses';
+import { Database } from 'game_server/database/db';
+import { responseTypes, ResponseTypes, sendMessageToUser } from 'game_server/responses/responses';
+import botAddShips from 'game_server/bot/addships';
+
+export type MessageCreateGame = {
+  idGame: number;
+  idPlayer: string;
+};
 
 export const createGame = (gameMessage: GameMessage, db: Database) => {
   const responseType = responseTypes.create_game as ResponseTypes;
@@ -13,7 +19,8 @@ export const createGame = (gameMessage: GameMessage, db: Database) => {
   users.forEach((user) => {
     const player = db.users.getUserByIndex(user.index);
     dataTemplate.idPlayer = player.user.index;
+    if (player.user.bot) botAddShips(dataTemplate, db);
     const responseData = JSON.stringify(dataTemplate);
-    sendMessage(responseType, responseData, player.user.ws!);
+    sendMessageToUser(responseType, responseData, player.user);
   });
 };

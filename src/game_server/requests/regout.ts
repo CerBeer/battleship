@@ -8,10 +8,8 @@ const regOut = (request: Request, db: Database): Answer => {
   const answer = emptyAnswer();
   answer.ident = 'User reg out';
   const foundUser = db.users.getUserByWs(request.ws!);
-  // console.log({ foundUser });
   if (!foundUser.isCorrect) {
     answer.isCorrect = true;
-    // answer.message = foundUser.message;
     return answer;
   }
 
@@ -29,6 +27,9 @@ const regOut = (request: Request, db: Database): Answer => {
       finish(gameMessage.game, winner, db);
       db.users.addScore(winner);
       db.games.deleteGame(gameMessage.game);
+      gameMessage.game.gameUsers.forEach((user) => {
+        if (user.bot) db.users.deleteUser(user.index);
+      });
       updateWinners(db);
     }
   }
