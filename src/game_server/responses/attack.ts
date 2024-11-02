@@ -1,6 +1,6 @@
 import { Game } from 'game_server/database/games';
 import { Database } from '../database/db';
-import { responseTypes, ResponseTypes, sendMessage } from './responses';
+import { responseTypes, ResponseTypes, sendMessageToUser } from './responses';
 
 export const responseTemplate = (): ResponseTemplate => {
   const result = {
@@ -30,6 +30,6 @@ export const attack = (game: Game, template: ResponseTemplate, db: Database) => 
   const responseData = JSON.stringify(template);
   game.gameUsers.forEach((gameUser) => {
     const user = db.users.getUserByIndex(gameUser.index).user;
-    sendMessage(responseType, responseData, user.ws!);
+    sendMessageToUser(responseType, responseData, user);
   });
 };

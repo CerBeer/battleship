@@ -7,7 +7,6 @@ const createRoom = (request: Request, db: Database): Answer => {
   answer.ident = 'Create new room';
 
   const userMessage = db.users.getUserByWs(request.ws!);
-  // console.log({ userMessage });
   if (!userMessage.isCorrect) {
     answer.isCorrect = false;
     answer.message = userMessage.message;

@@ -1,5 +1,6 @@
 import { Room } from './rooms';
 
+export type ShipType = 'small' | 'medium' | 'large' | 'huge';
 export type Ship = {
   position: {
     x: number;
@@ -7,7 +8,23 @@ export type Ship = {
   };
   direction: boolean;
   length: number;
-  type: 'small' | 'medium' | 'large' | 'huge';
+  type: ShipType;
+};
+export const ship = (type: ShipType): Ship => {
+  let length = 1;
+  if (type === 'huge') length = 4;
+  else if (type === 'large') length = 3;
+  else if (type === 'medium') length = 2;
+  const result = {
+    position: {
+      x: -1,
+      y: -1,
+    },
+    direction: false,
+    length,
+    type,
+  };
+  return result;
 };
 
 export type MessageDataShips = {
@@ -15,10 +32,17 @@ export type MessageDataShips = {
   ships: Ship[];
   indexPlayer: string;
 };
+export const messageDataShips = (): MessageDataShips => {
+  return {
+    gameId: 0,
+    ships: [],
+    indexPlayer: '',
+  };
+};
 
 export type SquareLine = number[];
 export type Square = SquareLine[];
-const squareEmpty = (): Square => {
+export const squareEmpty = (): Square => {
   const square: Square = [];
   for (let i = 0; i < 10; i += 1) {
     const squareLine: SquareLine = [];
@@ -36,6 +60,7 @@ export type GameUser = {
   ships: Ship[];
   square: Square;
   squareEnemy: Square;
+  bot: boolean;
 };
 
 export const gameUser = (): GameUser => {
@@ -45,6 +70,7 @@ export const gameUser = (): GameUser => {
     ships: [],
     square: squareEmpty(),
     squareEnemy: squareEmpty(),
+    bot: false,
   };
 };
 
@@ -117,6 +143,7 @@ export class Games {
       const player = gameUser();
       player.name = user.name;
       player.index = user.index;
+      player.bot = user.bot;
       result.game.gameUsers.push(player);
     });
     result.game.idGame = this._nextIndex;
@@ -200,12 +227,10 @@ export class Games {
     result.message = `Player ${player.name} added ships`;
     result.game = game;
 
-    // console.log(messageData.ships);
-
     return result;
   };
 
-  public setAttackResult = (gameResult: Game, shotResult: ShotResult): GameMessage => {
+  public setAttackResult = (gameResult: Game, shotResult: ShotResult, status: number): GameMessage => {
     const gameMessage = this.getGameByIndex(gameResult.idGame);
     if (!gameMessage.isCorrect) {
       return gameMessage;
@@ -227,8 +252,8 @@ export class Games {
 
     const y = shotResult.position.y;
     const x = shotResult.position.x;
-    enemy.square[y][x] = shotResult.status === 'miss' ? 1 : 3;
-    player.squareEnemy[y][x] = shotResult.status === 'miss' ? 1 : 3;
+    enemy.square[y][x] = status;
+    player.squareEnemy[y][x] = status;
     gameMessage.isCorrect = true;
     gameMessage.message = ``;
     gameMessage.game = game;

@@ -1,6 +1,6 @@
 import { Game } from 'game_server/database/games';
 import { Database } from '../database/db';
-import { responseTypes, ResponseTypes, sendMessage } from './responses';
+import { responseTypes, ResponseTypes, sendMessageToUser } from './responses';
 
 export type ResponseTemplate = {
   winPlayer: string;
@@ -11,6 +11,6 @@ export const finish = (game: Game, winPlayer: string, db: Database) => {
   const responseData = JSON.stringify({ winPlayer });
   game.gameUsers.forEach((gameUser) => {
     const user = db.users.getUserByIndex(gameUser.index).user;
-    sendMessage(responseType, responseData, user.ws!);
+    sendMessageToUser(responseType, responseData, user);
   });
 };

@@ -7,6 +7,7 @@ import addUserToRoom from './addusertoroom';
 import addShips from './addships';
 import attack from './attack';
 import randomAttack from './randomattack';
+import singlePlay from './singleplay';
 
 export const requestTypes = {
   empty: 'empty',
@@ -17,6 +18,7 @@ export const requestTypes = {
   add_ships: 'add_ships',
   attack: 'attack',
   randomAttack: 'randomAttack',
+  single_play: 'single_play',
 };
 
 export type Request = {
@@ -64,7 +66,6 @@ const parseRequest = (requestData: string, userWs: WebSocket) => {
   }
 
   const { type, data, id } = message as Request;
-  // console.log({ type, data, id });
   if (!requestTypes.hasOwnProperty(type) || data === undefined) {
     return result;
   }
@@ -82,7 +83,6 @@ const parseRequest = (requestData: string, userWs: WebSocket) => {
 
 export const processingRequest = (requestData: string, userWs: WebSocket, db: Database) => {
   const message = parseRequest(requestData, userWs);
-  // console.log({ message });
   if (!message.isCorrect) {
     if (message.answer) console.error(message.answer);
     return;
@@ -109,6 +109,9 @@ export const processingRequest = (requestData: string, userWs: WebSocket, db: Da
       break;
     case requestTypes.randomAttack:
       result = randomAttack(message, db);
+      break;
+    case requestTypes.single_play:
+      result = singlePlay(message, db);
       break;
     default:
       result = emptyAnswer();
