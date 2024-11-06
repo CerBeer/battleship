@@ -12,7 +12,6 @@ const addUserToRoom = (request: Request, db: Database): Answer => {
   answer.ident = 'Add user to room';
 
   const userMessage = db.users.getUserByWs(request.ws!);
-  // console.log({ userMessage });
   if (!userMessage.isCorrect) {
     answer.isCorrect = false;
     answer.message = userMessage.message;

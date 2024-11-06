@@ -1,11 +1,12 @@
 import { User } from './users';
 
-export type RoomUser = { name: string; index: string };
+export type RoomUser = { name: string; index: string; bot: boolean };
 
 export const roomUser = (): RoomUser => {
   return {
     name: '',
     index: '',
+    bot: false,
   };
 };
 
@@ -49,6 +50,7 @@ export class Rooms {
     const result = roomUser();
     result.index = user.index;
     result.name = user.name;
+    result.bot = user.bot;
     return result;
   };
 
@@ -67,6 +69,16 @@ export class Rooms {
     result.isCorrect = true;
     this._records.set(result.room.roomId, result.room);
     this._nextIndex += 1;
+    return result;
+  };
+
+  kickUserFrommAllRooms = (indexUser: string): boolean => {
+    if (!indexUser) return false;
+    if (!this.checkUserAlreadyInRoom(indexUser)) return false;
+    const result = true;
+    this._records.forEach((record: Room) => {
+      record.roomUsers = record.roomUsers.filter((user) => user.index !== indexUser);
+    });
     return result;
   };
 
@@ -137,7 +149,6 @@ export class Rooms {
   };
 
   public getAvailableRooms = (): Room[] => {
-    // console.log(this._records);
     const result: Room[] = [];
     this._records.forEach((record: Room) => {
       if (record.roomUsers.length === 1) result.push(record);

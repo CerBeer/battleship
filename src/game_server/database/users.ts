@@ -11,6 +11,7 @@ export type User = {
   password: string;
   score: number;
   ws: WebSocket | null;
+  bot: boolean;
 };
 
 export type Winner = {
@@ -25,6 +26,7 @@ export const emptyUser = (): User => {
     password: '',
     score: 0,
     ws: null,
+    bot: false,
   };
 };
 
@@ -92,7 +94,6 @@ export class Users {
   };
 
   public regOut = (newUser: User): PlayerMessage => {
-    // console.log({ newUser });
     const check = this.checkNewUserInMessage(newUser);
     if (!check.isCorrect) {
       return check;
@@ -141,6 +142,15 @@ export class Users {
     return result;
   };
 
+  public deleteUser = (index: string): PlayerMessage => {
+    const playerMessage = this.getUserByIndex(index);
+    if (!playerMessage.isCorrect) return playerMessage;
+    this._records.delete(index);
+    playerMessage.isCorrect = true;
+    playerMessage.message = '';
+    return playerMessage;
+  };
+
   public addScore = (index: string): PlayerMessage => {
     const result = this.getUserByIndex(index);
     if (!result.isCorrect) {
@@ -185,7 +195,6 @@ export class Users {
     this._records.forEach((record: User) => {
       if (record.ws === uws) user = record;
     });
-    // console.log('getUserByWs', { user });
     if (!user.index) {
       result.isCorrect = false;
       result.message = 'User not found';
